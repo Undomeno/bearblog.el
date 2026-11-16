@@ -1,0 +1,133 @@
+#+title: bearblog.el
+
+Post to [[https://bearblog.dev][Bear]] from Emacs. Write a post in an Org file, run =M-x bearblog-post-org=.
+
+* Current functionalities:
+- Post with =M-x bearblog-post-org=
+- Delete with =M-x bearblog-delete-org-post=
+
+
+* Installation
+
+The package isn't on a package archive yet, so install it from GitHub.
+
+With =use-package= (Emacs 30+):
+
+#+begin_src emacs-lisp
+(use-package bearblog
+  :vc (:url "https://github.com/Undomeno/bearblog.el" :rev :newest))
+#+end_src
+
+With [[https://github.com/radian-software/straight.el][straight.el]]:
+
+#+begin_src emacs-lisp
+(straight-use-package
+ '(bearblog :host github :repo "Undomeno/bearblog.el"))
+#+end_src
+
+With Doom Emacs, in =packages.el=:
+
+#+begin_src emacs-lisp
+(package! bearblog :recipe (:host github :repo "Undomeno/bearblog.el"))
+#+end_src
+
+* Setup
+
+** 1. Get an API key
+
+In your Bear dashboard, go to Settings → API and generate a key.
+
+** 2. Set your subdomain
+
+
+Set your Bear subdomain name:
+
+#+begin_src emacs-lisp
+  (setq bearblog-subdomain "subdomain")
+#+end_src
+
+** 3. Store the key
+
+Put the key in =~/.authinfo.gpg=.
+#+begin_example
+machine bearblog.dev login subdomain password YOUR-API-KEY
+#+end_example
+=bearblog.el= reads it directly, without additional settings.
+
+The =login= must match =bearblog-subdomain=.
+
+Or set it directly at your own risk:
+#+begin_src emacs-lisp
+  (setq bearblog-api-key "YOUR-API-KEY")
+#+end_src
+
+* Writing a post
+
+Write a post in org file. =#+TITLE= is the title, the body of the file is the post content, and =#+BEAR_= keywords set everything else:
+
+#+begin_src org
+,#+TITLE: Hello from Org
+,#+BEAR_PUBLISH: nil
+,#+BEAR_TAGS: emacs, org mode
+,#+BEAR_PUBLISH_DATE: <2026-11-20 Fri 09:00>
+
+
+,* A heading
+text text *text* /munch munch munch/
+#+end_src
+
+Then run =M-x bearblog-post-org= in that buffer.
+
+** First post and updates
+
+The first time you post a file, a new post is created on Bear, and its id is added under the title and the file is saved:
+
+#+begin_src org
+  ,#+BEAR_UID: 8f3kq2Jx
+#+end_src
+
+From then on, =bearblog-post-org= updates that post instead of creating a new one. Don't edit or copy this line: it's how the file knows which post it belongs to.
+
+** Keywords
+
+| Keyword                 | Sets                   | Value                                 |
+|-------------------------+------------------------+---------------------------------------|
+| =#+TITLE=                 | title                  | text, *required*                        |
+| =#+BEAR_SLUG=             | URL slug               | text                                  |
+| =#+BEAR_PUBLISH=          | published or draft     | =t= or =nil=                              |
+| =#+BEAR_PUBLISH_DATE=     | publish date           | Org timestamp                         |
+| =#+BEAR_TAGS=             | tags                   | comma-separated, e.g. =emacs, org mode= |
+| =#+BEAR_IS_PAGE=          | page instead of post   | =t= or =nil=                              |
+| =#+BEAR_DISCOVERABLE=     | show in discovery feed | =t= or =nil=                              |
+| =#+BEAR_ALIAS=            | alias                  | text                                  |
+| =#+BEAR_CANONICAL_URL=    | canonical URL          | text                                  |
+| =#+BEAR_META_DESCRIPTION= | meta description       | text                                  |
+| =#+BEAR_META_IMAGE=       | meta image             | URL                                   |
+| =#+BEAR_CLASS_NAME=       | CSS class              | text                                  |
+| =#+BEAR_LANG=             | language               | text, e.g. =en=                         |
+| =#+BEAR_UID=              | which post to update   | added for you                         |
+
+Notes:
+- Leave out the keywords you don't need.
+- Anything other than t is treat as nil.
+- *Bear's defaults* when a keyword is left out:
+  - *Publish:* new posts are drafts unless =#+BEAR_PUBLISH: t=.
+  - *Publish date:* Bear sets the date when the post is first published.
+  - *Slug:* made from the title.
+- Image upload is not supported. Upload them to an image host and link them.
+
+** How content is converted
+
+The body is exported to Markdown with ox-md, with top-level =*= headings become =##=.
+
+* Delete a post
+
+Delete the post with =M-x bearblog-delete-org-post=. =#+BEAR_UID= is removed.
+
+* TODOs
+
+** TODO post dashboard. View posts within emacs.
+
+* License
+
+MIT. See [[file:LICENSE][LICENSE]].

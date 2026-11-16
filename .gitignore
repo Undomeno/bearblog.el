@@ -1,0 +1,6 @@
+# .ignore
+.stignore
+*.tmp
+
+.DS_Store
+*.elc
